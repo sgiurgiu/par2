@@ -1,0 +1,4 @@
+[Project]
+Name=par2
+Manager=KDevCMakeManager
+VersionControl=kdevgit
