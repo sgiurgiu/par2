@@ -1,0 +1,6 @@
+build/
+.kdev4/
+db/
+callgrind.out.*
+CMakeLists.txt.user
+
