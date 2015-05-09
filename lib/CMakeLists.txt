@@ -1,5 +1,5 @@
 
-set (PAR2_LIB_SRC par2.c)
+set (PAR2_LIB_SRC par2.cpp par2_packet.cpp)
 
 
 

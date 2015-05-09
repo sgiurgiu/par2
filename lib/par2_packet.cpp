@@ -1,35 +1,31 @@
-#include "par2.h"
+#include "par2_packet.h"
 #include "types.h"
 
-
+#include <string.h>
+#include <assert.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
 
 #ifndef NDEBUG
-#include <stdio.h>
+#include <iostream>
 #endif
-
 
 static enum Par2Result
 check_magic(struct par2_packet_header* header) 
 {
-  if(memcmp(header->magic, magic, sizeof(magic)) != 0)
+  if(header->magic != magic)
   {
     return PAR2_ERROR_NOTAPAR2FILE;
   }
   
-  return PAR2_OK;    
+  return PAR2_OK;
 }
 
 static enum Par2Result
 check_header(int file, struct par2_packet_header* header) 
-{  
+{
   enum Par2Result result = PAR2_OK;
   int read_amount = 0;
   if((read_amount = read(file,header, sizeof(*header))) != sizeof(*header))
@@ -43,13 +39,12 @@ check_header(int file, struct par2_packet_header* header)
   assert((header->length - 64) % 4 == 0);//body length must be a multiple of 4
   return PAR2_OK;
 }
- 
-enum Par2Result
-verify (const char *par_file)
+
+enum Par2Result read_mainfile_packets(const char* file_name)
 {
-  int file;
+    int file;
   enum Par2Result result = PAR2_OK;
-  if((file = open(par_file, O_RDONLY)) == -1 )
+  if((file = open(file_name, O_RDONLY)) == -1 )
   {
     return PAR2_ERROR_OPENFILE;
   }
@@ -59,16 +54,12 @@ verify (const char *par_file)
     goto exit;
   }
   
-  if(memcmp(header.type, main_type, sizeof(main_type)) == 0)
-  {
-    
-  }
-  
 #ifndef NDEBUG
-  printf("type is %s, is main %d\n", header.type,(memcmp(header.type, main_type, sizeof(main_type)) == 0));
+  std::cout <<"type is "<<header.type.data()<<", is filedesc "<<(header.type == filedesc_type)<<"\n";
 #endif
   
-exit:  
+  
+exit:
   close(file);
-  return result;
+  return result;  
 }
