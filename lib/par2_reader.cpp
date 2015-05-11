@@ -60,8 +60,6 @@ par2_reader::PacketsMap par2_reader::read_packets()
     packets.emplace(header.packet_hash,std::move(packet));
   }
   
-  
-  
-  return std::move(packets);
+  return packets;
 }
 

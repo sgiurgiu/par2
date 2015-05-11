@@ -52,7 +52,6 @@ struct par2_packet
   par2_packet_header header = {};
   virtual void read(std::ifstream& in) = 0;
   
-  //rule of 6
   virtual ~par2_packet() = default;
   par2_packet() = default;
   par2_packet(const par2_packet& ) = default;
