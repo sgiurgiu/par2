@@ -24,12 +24,42 @@
 #include <memory>
 
 namespace par2 {
+  
+  template<
+    class IdentifierType, class ProductType>
+    class DefaultFactoryError
+    {
+    public:
+       class Exception : public std::exception
+       {
+         public:
+           Exception(const IdentifierType& id): id(id) {}
+           virtual const char* what() const noexcept override
+           {
+             return "Unknown object type";
+           }
+           const IdentifierType get_id() const
+           {
+             return id;
+           }
+       private:
+         IdentifierType id;
+       };
+       protected:
+         ProductType OnUnknownType(const IdentifierType& id)
+         {
+           throw Exception(id);
+         }
+    };
 
-  template <
+template <
     class AbstractPacket,
     typename IdentifierType,
-    typename PacketCreator = std::function<AbstractPacket()>>
-class par2_factory
+    typename PacketCreator = std::function<AbstractPacket()>,
+    template<typename,class>
+      class FactoryErrorPolicy = DefaultFactoryError
+    >
+class par2_factory : public FactoryErrorPolicy<IdentifierType, AbstractPacket>
 {
 public:
   bool register_type(const IdentifierType& id, PacketCreator creator)
@@ -45,10 +75,9 @@ public:
     auto it = types.find(id);
     if(it != types.end())
     {
-      return  it->second();      
+      return  it->second();
     }
-    //FIXME: Use a FactoryErrorPolicy
-    throw std::runtime_error("Unknown type");
+    return this->OnUnknownType(id);
   }
   
 private:  

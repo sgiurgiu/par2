@@ -14,54 +14,60 @@ typedef std::vector<uint8_t>	byte_data;
 typedef std::array<uint8_t,8> 		byte_array_8;
 typedef std::array<uint8_t,16> 		byte_array_16;
 
-static const byte_array_8 magic = 			{'P', 'A', 'R', '2', '\0', 'P', 'K', 'T'};
-static const byte_array_16 main_type = 			{'P','A','R',' ','2','.','0','\0','M','a','i','n','\0','\0','\0','\0'};
-static const byte_array_16 filedesc_type = 		{'P','A','R',' ','2','.','0','\0','F','i','l','e','D','e','s','c'};
-static const byte_array_16 input_slice_checksum_type = 	{'P','A','R',' ','2','.','0','\0','I','F','S','C','\0','\0','\0','\0'};
-static const byte_array_16 recovery_slice_type = 	{'P','A','R',' ','2','.','0','\0','R','e','c','v','S','l','i','c'};
-static const byte_array_16 creator_type = 		{'P','A','R',' ','2','.','0','\0','C','r','e','a','t','o','r','\0'};
-static const byte_array_16 unicode_filename_type = 	{'P','A','R',' ','2','.','0','\0','U','n','i','F','i','l','e','N'};
-static const byte_array_16 ascii_comment_type = 	{'P','A','R',' ','2','.','0','\0','C','o','m','m','A','S','C','I'};
-static const byte_array_16 unicode_comment_type =       {'P','A','R',' ','2','.','0','\0','C','o','m','m','U','n','i'};
-static const byte_array_16 input_file_slice_type  =     {'P','A','R',' ','2','.','0','\0','F','i','l','e','S','l','i','c'};
-static const byte_array_16 recovery_slice_checksum_type = {'P','A','R',' ','2','.','0','\0','R','F','S','C','\0','\0','\0','\0'};
-static const byte_array_16 packed_main_type =           {'P','A','R',' ','2','.','0','\0','P','k','d','M','a','i','n','\0'};
-static const byte_array_16 packed_recovery_slice_type = {'P','A','R',' ','2','.','0','\0','P','k','d','R','e','c','v','S'};
+static constexpr byte_array_8 magic = 			{'P', 'A', 'R', '2', '\0', 'P', 'K', 'T'};
+static constexpr byte_array_16 main_type = 			{'P','A','R',' ','2','.','0','\0','M','a','i','n','\0','\0','\0','\0'};
+static constexpr byte_array_16 filedesc_type = 		{'P','A','R',' ','2','.','0','\0','F','i','l','e','D','e','s','c'};
+static constexpr byte_array_16 input_slice_checksum_type = 	{'P','A','R',' ','2','.','0','\0','I','F','S','C','\0','\0','\0','\0'};
+static constexpr byte_array_16 recovery_slice_type = 	{'P','A','R',' ','2','.','0','\0','R','e','c','v','S','l','i','c'};
+static constexpr byte_array_16 creator_type = 		{'P','A','R',' ','2','.','0','\0','C','r','e','a','t','o','r','\0'};
+static constexpr byte_array_16 unicode_filename_type = 	{'P','A','R',' ','2','.','0','\0','U','n','i','F','i','l','e','N'};
+static constexpr byte_array_16 ascii_comment_type = 	{'P','A','R',' ','2','.','0','\0','C','o','m','m','A','S','C','I'};
+static constexpr byte_array_16 unicode_comment_type =       {'P','A','R',' ','2','.','0','\0','C','o','m','m','U','n','i'};
+static constexpr byte_array_16 input_file_slice_type  =     {'P','A','R',' ','2','.','0','\0','F','i','l','e','S','l','i','c'};
+static constexpr byte_array_16 recovery_slice_checksum_type = {'P','A','R',' ','2','.','0','\0','R','F','S','C','\0','\0','\0','\0'};
+static constexpr byte_array_16 packed_main_type =           {'P','A','R',' ','2','.','0','\0','P','k','d','M','a','i','n','\0'};
+static constexpr byte_array_16 packed_recovery_slice_type = {'P','A','R',' ','2','.','0','\0','P','k','d','R','e','c','v','S'};
 
 
 struct par2_packet_header
 {
-    byte_array_8 magic;
-    uint64_t length;
-    byte_array_16 packet_hash;
-    byte_array_16 recovery_set_id;
-    byte_array_16 type;
-    /*void read(std::ifstream& in) 
+    byte_array_8 magic = {};
+    uint64_t length = {0};
+    byte_array_16 packet_hash = {};
+    byte_array_16 recovery_set_id = {};
+    byte_array_16 type = {};
+    void read(std::ifstream& in) 
     {
-      
       in.read((char*)magic.data(),sizeof(uint8_t) * magic.size());
-      in.read((char*)length,sizeof(uint64_t));
+      in.read((char*)&length,sizeof(uint64_t));
       in.read((char*)packet_hash.data(),sizeof(uint8_t) * packet_hash.size());
       in.read((char*)recovery_set_id.data(),sizeof(uint8_t) * recovery_set_id.size());
       in.read((char*)type.data(),sizeof(uint8_t) * type.size());
-    }*/
+    }
     
 };
 
 struct par2_packet
 {
-  par2_packet_header header;
+  par2_packet_header header = {};
   virtual void read(std::ifstream& in) = 0;
   
+  //rule of 6
+  virtual ~par2_packet() = default;
+  par2_packet() = default;
+  par2_packet(const par2_packet& ) = default;
+  par2_packet& operator=(const par2_packet& ) = default;
+  par2_packet(par2_packet && ) = default;
+  par2_packet& operator=(par2_packet && ) = default;
 };
 
 struct par2_main : public par2_packet
 {
-  uint64_t slice_size;
-  uint32_t files_count;
-  std::vector<byte_array_16> recovery_files_ids;
-  std::vector<byte_array_16> nonrecovery_files_ids;
-  virtual void read(std::ifstream& in) 
+  uint64_t slice_size = {0};
+  uint32_t files_count = {0};
+  std::vector<byte_array_16> recovery_files_ids = {};
+  std::vector<byte_array_16> nonrecovery_files_ids = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)&slice_size,sizeof(uint64_t));
     in.read((char*)&files_count,sizeof(uint32_t));
@@ -86,12 +92,12 @@ struct par2_main : public par2_packet
 
 struct par2_description : public par2_packet
 {
-    byte_array_16 file_id;
-    byte_array_16 file_hash;
-    byte_array_16 file_16k_hash;
-    uint64_t length;
-    ustring name;
-    virtual void read(std::ifstream& in)
+    byte_array_16 file_id = {};
+    byte_array_16 file_hash = {};
+    byte_array_16 file_16k_hash = {};
+    uint64_t length = {0};
+    ustring name = {};
+    virtual void read(std::ifstream& in) override
     {
       in.read((char*)file_id.data(),sizeof(uint8_t) * file_id.size());
       in.read((char*)file_hash.data(),sizeof(uint8_t) * file_hash.size());
@@ -104,8 +110,8 @@ struct par2_description : public par2_packet
 };
 struct hash_crc
 {
-    byte_array_16 hash;
-    uint32_t crc;
+    byte_array_16 hash = {};
+    uint32_t crc = {0};
     void read(std::ifstream& in)
     {
       in.read((char*)hash.data(),sizeof(uint8_t) * hash.size());
@@ -114,9 +120,9 @@ struct hash_crc
 };
 struct par2_input_slice_checksum : public par2_packet
 {
-  byte_array_16 file_id;
-  std::vector<hash_crc> hash_crcs;
-  virtual void read(std::ifstream& in)
+  byte_array_16 file_id = {};
+  std::vector<hash_crc> hash_crcs = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)file_id.data(),sizeof(uint8_t) * file_id.size());
     uint64_t hc_count = (header.length - sizeof(header) - (sizeof(uint8_t) * file_id.size())) / sizeof(hash_crc);
@@ -131,9 +137,9 @@ struct par2_input_slice_checksum : public par2_packet
 
 struct par2_recovery_slice : public par2_packet
 {
-  uint32_t exponent;
-  byte_data data;
-  virtual void read(std::ifstream& in)
+  uint32_t exponent = {0};
+  byte_data data = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)&exponent,sizeof(uint32_t));
     uint64_t data_length = header.length - sizeof(header) - sizeof(uint32_t);
@@ -144,8 +150,8 @@ struct par2_recovery_slice : public par2_packet
 
 struct par2_creator : public par2_packet
 {
-  ustring creator_name;
-  virtual void read(std::ifstream& in)
+  ustring creator_name = {};
+  virtual void read(std::ifstream& in) override
   {
     uint64_t name_length = header.length - sizeof(header);
     creator_name.resize(name_length);
@@ -155,9 +161,9 @@ struct par2_creator : public par2_packet
 
 struct par2_unicode_filename : public par2_packet
 {
-  byte_array_16 file_id;
-  ustring name;
-  virtual void read(std::ifstream& in)
+  byte_array_16 file_id = {};
+  ustring name = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)file_id.data(),sizeof(uint8_t) * file_id.size());
     uint64_t name_length = header.length - sizeof(header) - (sizeof(uint8_t) * file_id.size());
@@ -167,8 +173,8 @@ struct par2_unicode_filename : public par2_packet
 };
 struct par2_ascii_comment : public par2_packet
 {
-  ustring comment;
-  virtual void read(std::ifstream& in)
+  ustring comment = {};
+  virtual void read(std::ifstream& in) override
   {
     uint64_t comment_length = header.length - sizeof(header);
     comment.resize(comment_length);
@@ -177,9 +183,9 @@ struct par2_ascii_comment : public par2_packet
 };
 struct par2_unicode_comment : public par2_packet
 {
-  byte_array_16 file_id;
-  ustring comment;
-  virtual void read(std::ifstream& in)
+  byte_array_16 file_id = {};
+  ustring comment = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)file_id.data(),sizeof(uint8_t) * file_id.size());
     uint64_t comment_length = header.length - sizeof(header) - (sizeof(uint8_t) * file_id.size());
@@ -189,10 +195,10 @@ struct par2_unicode_comment : public par2_packet
 };
 struct par2_input_file_slice : public par2_packet
 {
-  byte_array_16 file_id;
-  uint64_t index;
-  byte_data data;
-  virtual void read(std::ifstream& in)
+  byte_array_16 file_id = {};
+  uint64_t index = {0};
+  byte_data data = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)file_id.data(),sizeof(uint8_t) * file_id.size());
     in.read((char*)&index,sizeof(uint64_t));
@@ -204,9 +210,9 @@ struct par2_input_file_slice : public par2_packet
 };
 struct hash_crc_exponent
 {
-    byte_array_16 hash;
-    uint32_t crc;
-    uint32_t exponent;
+    byte_array_16 hash = {};
+    uint32_t crc = {0};
+    uint32_t exponent = {0};
     void read(std::ifstream& in)
     {
       in.read((char*)hash.data(),sizeof(uint8_t) * hash.size());
@@ -217,10 +223,10 @@ struct hash_crc_exponent
 };
 struct par2_recovery_file_slice_checksum : public par2_packet
 {
-  byte_array_16 file_id;
-  uint64_t index;  
-  std::vector<hash_crc_exponent> hash_crc_exponents; 
-  virtual void read(std::ifstream& in)
+  byte_array_16 file_id = {};
+  uint64_t index = {0};
+  std::vector<hash_crc_exponent> hash_crc_exponents = {};
+  virtual void read(std::ifstream& in) override
   {
     in.read((char*)file_id.data(),sizeof(uint8_t) * file_id.size());
     in.read((char*)&index,sizeof(uint64_t));
@@ -236,12 +242,12 @@ struct par2_recovery_file_slice_checksum : public par2_packet
 
 struct par2_packed_main : public par2_packet
 {
-  uint64_t subslice_size;
-  uint64_t slice_size;
-  uint32_t file_count;
-  std::vector<byte_array_16> recovery_files_ids;
-  std::vector<byte_array_16> nonrecovery_files_ids;
-  virtual void read(std::ifstream& in) 
+  uint64_t subslice_size = {0};
+  uint64_t slice_size = {0};
+  uint32_t file_count = {0};
+  std::vector<byte_array_16> recovery_files_ids = {};
+  std::vector<byte_array_16> nonrecovery_files_ids = {};
+  virtual void read(std::ifstream& in)  override
   {
     in.read((char*)&subslice_size,sizeof(uint64_t));
     in.read((char*)&slice_size,sizeof(uint64_t));
@@ -267,9 +273,9 @@ struct par2_packed_main : public par2_packet
 };
 struct par2_packed_recovery : public par2_packet
 {
-  uint32_t exponent;
-  byte_data recovery_data;
-  virtual void read(std::ifstream& in)
+  uint32_t exponent = {0};
+  byte_data recovery_data = {};
+  virtual void read(std::ifstream& in) override
   {    
     in.read((char*)&exponent,sizeof(uint32_t));
     uint64_t data_length = header.length - sizeof(header) - sizeof(uint32_t);

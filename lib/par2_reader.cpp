@@ -48,11 +48,10 @@ par2_reader::PacketsMap par2_reader::read_packets()
   while(!in.eof())
   {
     par2_packet_header header;
-    in.read((char*)&header, sizeof(header));
+    header.read(in);
     if(header.magic != magic)
-    {
-      //return PAR2_ERROR_NOTAPAR2FILE;
-      //throw some exception
+    {      
+      throw par2_reader_exception();
     }
     
     auto packet = factory.create_packet(header.type);
@@ -60,6 +59,8 @@ par2_reader::PacketsMap par2_reader::read_packets()
     packet->read(in);
     packets.emplace(header.packet_hash,std::move(packet));
   }
+  
+  
   
   return std::move(packets);
 }
